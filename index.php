@@ -7,11 +7,38 @@
     <style>
     body {
         font-family: Arial, sans-serif;
+        background-color: #2e2e2e;
+        size: 100vh;
+    }
+
+    .container {
+        background-color: rgb(211, 211, 211);
+        position: absolute;
+        right: 40%;
+        top: 30%;
+        padding: 100px;
+        margin: auto;
+        text-align: center;
+        border-radius: 10px;
+        opacity: 75%;
+        box-shadow: -10px 20px 20px 5px rgb(109, 109, 109);
+    }
+
+    #submit {
+        background-color: rgb(0, 255, 0);
+        border: solid white 1px;
+        margin: 5px;
+    }
+
+    #reset {
+        background-color: rgba(255, 0, 0, 1);
+        border: solid white 1px;
+        margin: 5px;
     }
     </style>
 </head>
 <body>
-    <div>
+    <div class="container">
         <form action="getarrow.php" method="POST">
             Arrow Length: (cm)<br>
             <input type="text" name="arrow_length">
@@ -32,8 +59,8 @@
                 <option value="Skylon Bruxx">
             </datalist>
             <br>
-            <button type="submit">Submit</button>
-            <button type="reset">Reset</button>
+            <button type="submit" id="submit">Submit</button>
+            <button type="reset" id="reset">Reset</button>
         </form>
     </div>
 </body>

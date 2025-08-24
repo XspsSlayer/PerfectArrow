@@ -1,11 +1,12 @@
 <?php
-$servername = "localhost";
+$servername = "db";
 $username = "root";
-$password = "";
+$password = "secret";
 
 $arrow_length = isset($_POST['arrow_length']) ? (float)$_POST['arrow_length'] : 0;
 $draw_strength = isset($_POST['draw_strength']) ? (float)$_POST['draw_strength'] : 0;
 $arrow = isset($_POST['arrow']) ? $_POST['arrow'] : '';
+
 $brand_configs = [
     "Skylon" => [
         "database" => "skylon",
@@ -29,7 +30,8 @@ foreach ($brand_configs as $brand => $settings) {
         $database = $settings['database'];
         $conn = mysqli_connect($servername, $username, $password, $database);
         if (mysqli_connect_errno()) {
-            die("Connection Error: " . mysqli_connect_error());
+            echo "Connection Error: " . mysqli_connect_error() . "<br>";
+            continue; // Continue to the next brand
         }
 
         require $settings['config_file'];
@@ -41,7 +43,8 @@ foreach ($brand_configs as $brand => $settings) {
                 if ($draw_strength >= $conf['draw_min'] && $draw_strength <= $conf['draw_max']) {
                     foreach ($conf['ranges'] as $range) {
                         if ($arrow_length >= $range['min'] && $arrow_length < $range['max']) {
-                            $mysql = "SELECT spine, model FROM {$range['table']} WHERE model = '$model'";
+                            $table = $range['table'];
+                            $mysql = "SELECT spine, model FROM `$table` WHERE model = ?";
                             break 2;
                         }
                     }
@@ -50,11 +53,21 @@ foreach ($brand_configs as $brand => $settings) {
         }
 
         if ($mysql !== "") {
-            $result = mysqli_query($conn, $mysql);
+            $stmt = mysqli_prepare($conn, $mysql);
+            if ($stmt === false) {
+                echo "Error preparing statement: " . mysqli_error($conn) . "<br>";
+                mysqli_close($conn);
+                continue;
+            }
+
+            mysqli_stmt_bind_param($stmt, "s", $model);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+
 
             if ($result == false) {
                 echo "Arrow's spine does not exist. <br>";
-                die(mysqli_error($conn));
+                echo "Error: " . mysqli_error($conn) . "<br>";
             } else {
                 $found = false;
                 while ($row = mysqli_fetch_assoc($result)) {
@@ -65,6 +78,7 @@ foreach ($brand_configs as $brand => $settings) {
                     echo "No matching spine found for the given arrow length and draw strength.<br>";
                 }
             }
+            mysqli_stmt_close($stmt);
         } else {
             echo "No matching configuration for the given arrow length and draw strength.<br>";
         }
